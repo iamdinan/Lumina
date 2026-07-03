@@ -7,10 +7,17 @@ const usersRoutes = require("./routes/users.routes");
 const userSeriesRoutes = require("./routes/userSeries.routes");
 const userEpisodesRoutes = require("./routes/userEpisodes.routes");
 const errorHandler = require("./middleware/error.middleware");
+const helmet = require("helmet");
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  }),
+);
 app.use(express.json());
+app.use(helmet());
 
 // Health check — confirms server is up AND db connection works
 app.get("/api/health", async (req, res) => {
