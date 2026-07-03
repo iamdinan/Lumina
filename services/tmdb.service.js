@@ -1,0 +1,24 @@
+const axios = require("axios");
+require("dotenv").config();
+
+const tmdb = axios.create({
+  baseURL: process.env.TMDB_BASE_URL,
+  params: { api_key: process.env.TMDB_API_KEY },
+});
+
+async function searchSeries(query) {
+  const res = await tmdb.get("/search/tv", { params: { query } });
+  return res.data.results;
+}
+
+async function getSeriesDetails(tmdbId) {
+  const res = await tmdb.get(`/tv/${tmdbId}`);
+  return res.data;
+}
+
+async function getSeasonDetails(tmdbId, seasonNo) {
+  const res = await tmdb.get(`/tv/${tmdbId}/season/${seasonNo}`);
+  return res.data;
+}
+
+module.exports = { searchSeries, getSeriesDetails, getSeasonDetails };
