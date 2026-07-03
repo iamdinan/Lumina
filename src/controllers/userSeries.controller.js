@@ -53,33 +53,31 @@ const updateStatus = asyncHandler(async (req, res) => {
 });
 
 // GET /api/users/me/series?status=watching
-const listSeries = asyncHandler(async (req, res) => {
+async function listSeries(req, res) {
   const userId = req.user.userId;
   const { status } = req.query;
+  const limit = Math.min(Number(req.query.limit) || 20, 100);
+  const offset = Number(req.query.offset) || 0;
 
   let query = `
-      SELECT us.status, us.added_at, s.series_id, s.series_name, s.poster_path
-      FROM user_series us
-      JOIN series s ON s.series_id = us.series_id
-      WHERE us.user_id = $1
-    `;
+    SELECT us.status, us.added_at, s.series_id, s.series_name, s.poster_path
+    FROM user_series us
+    JOIN series s ON s.series_id = us.series_id
+    WHERE us.user_id = $1
+  `;
   const params = [userId];
 
   if (status) {
-    if (!VALID_STATUSES.includes(status)) {
-      return res.status(400).json({
-        error: `status must be one of ${VALID_STATUSES.join(", ")}`,
-      });
-    }
-    query += ` AND us.status = $2`;
+    query += ` AND us.status = $${params.length + 1}`;
     params.push(status);
   }
 
-  query += ` ORDER BY us.added_at DESC`;
+  query += ` ORDER BY us.added_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+  params.push(limit, offset);
 
   const result = await pool.query(query, params);
   res.json(result.rows);
-});
+}
 
 // DELETE /api/users/me/series/:seriesId
 const removeSeries = asyncHandler(async (req, res) => {
