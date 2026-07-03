@@ -1,22 +1,19 @@
 const tmdbService = require("../services/tmdb.service");
 const pool = require("../../config/db");
+const asyncHandler = require("../utils/asyncHandler");
+const AppError = require("../utils/AppError");
 
-async function search(req, res) {
+const search = asyncHandler(async (req, res) => {
   const { q } = req.query;
   if (!q) {
     return res.status(400).json({ error: 'Query param "q" is required' });
   }
 
-  try {
-    const results = await tmdbService.searchSeries(q);
-    res.json(results);
-  } catch (err) {
-    console.error("TMDB search failed:", err.message);
-    res.status(502).json({ error: "Failed to fetch from TMDB" });
-  }
-}
+  const results = await tmdbService.searchSeries(q);
+  res.json(results);
+});
 
-async function importSeries(req, res) {
+const importSeries = asyncHandler(async (req, res) => {
   const { tmdbId } = req.params;
   const client = await pool.connect();
 
@@ -79,11 +76,10 @@ async function importSeries(req, res) {
     res.status(201).json({ message: "Series imported", series_id: seriesId });
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("Import failed:", err.message);
-    res.status(500).json({ error: "Failed to import series" });
+    throw err;
   } finally {
     client.release();
   }
-}
+});
 
 module.exports = { search, importSeries };
