@@ -42,4 +42,7 @@ router.get(
   userEpisodesController.getSeriesProgress,
 );
 
+//series progress tracker endpoint
+router.get("/:seriesId/progress", userEpisodesController.getSeriesProgress);
+
 module.exports = router;
