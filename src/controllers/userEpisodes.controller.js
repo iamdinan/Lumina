@@ -1,4 +1,4 @@
-const pool = require("../../config/db");
+const pool = require("../config/db");
 const asyncHandler = require("../utils/asyncHandler");
 const AppError = require("../utils/AppError");
 
