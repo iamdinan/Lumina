@@ -63,4 +63,12 @@ const login = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { register, login };
+const getMe = asyncHandler(async (req, res) => {
+  const result = await pool.query(
+    `SELECT user_id, username, created_at FROM users WHERE user_id = $1`,
+    [req.user.userId],
+  );
+  res.json(result.rows[0]);
+});
+
+module.exports = { register, login, getMe };
