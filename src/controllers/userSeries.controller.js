@@ -1,4 +1,4 @@
-const pool = require("../config/db");
+const pool = require("../../config/db");
 
 const VALID_STATUSES = ["watchlist", "watching", "completed"];
 
@@ -82,11 +82,9 @@ async function listSeries(req, res) {
 
     if (status) {
       if (!VALID_STATUSES.includes(status)) {
-        return res
-          .status(400)
-          .json({
-            error: `status must be one of ${VALID_STATUSES.join(", ")}`,
-          });
+        return res.status(400).json({
+          error: `status must be one of ${VALID_STATUSES.join(", ")}`,
+        });
       }
       query += ` AND us.status = $2`;
       params.push(status);

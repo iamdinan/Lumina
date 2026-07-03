@@ -4,6 +4,7 @@ const cors = require("cors");
 const pool = require("../config/db");
 const seriesRoutes = require("./routes/series.routes");
 const usersRoutes = require("./routes/users.routes");
+const userSeriesRoutes = require("./routes/userSeries.routes");
 
 const app = express();
 app.use(cors());
@@ -32,6 +33,7 @@ app.get("/api/health", async (req, res) => {
 
 app.use("/api/series", seriesRoutes);
 app.use("/api/users", usersRoutes);
+app.use("/api/users/me/series", userSeriesRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
