@@ -44,5 +44,18 @@ router.get(
 
 //series progress tracker endpoint
 router.get("/:seriesId/progress", userEpisodesController.getSeriesProgress);
+router.get(
+  "/:seriesId/status",
+  seriesIdParam,
+  validate,
+  userSeriesController.getSeriesStatus,
+);
+
+router.post(
+  "/:seriesId/mark-completed",
+  seriesIdParam,
+  validate,
+  userEpisodesController.markSeriesCompleted,
+);
 
 module.exports = router;

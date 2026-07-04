@@ -5,27 +5,20 @@ const AppError = require("../utils/AppError");
 const VALID_STATUSES = ["watchlist", "watching", "completed"];
 
 // POST /api/users/me/series/:seriesId
-const addSeries = asyncHandler(async (req, res) => {
+async function addSeries(req, res) {
   const userId = req.user.userId;
   const { seriesId } = req.params;
-  const { status = "watchlist" } = req.body;
-
-  if (!VALID_STATUSES.includes(status)) {
-    return res
-      .status(400)
-      .json({ error: `status must be one of ${VALID_STATUSES.join(", ")}` });
-  }
 
   const result = await pool.query(
     `INSERT INTO user_series (user_id, series_id, status)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (user_id, series_id) DO UPDATE
-         SET status = EXCLUDED.status
-       RETURNING *`,
-    [userId, seriesId, status],
+     VALUES ($1, $2, 'watchlist')
+     ON CONFLICT (user_id, series_id) DO NOTHING
+     RETURNING *`,
+    [userId, seriesId],
   );
-  res.status(201).json(result.rows[0]);
-});
+
+  res.status(201).json(result.rows[0] || { message: "Already tracked" });
+}
 
 // PATCH /api/users/me/series/:seriesId
 const updateStatus = asyncHandler(async (req, res) => {
@@ -84,15 +77,45 @@ const removeSeries = asyncHandler(async (req, res) => {
   const userId = req.user.userId;
   const { seriesId } = req.params;
 
+  // Delete watch history for this series' episodes for this user
+  await pool.query(
+    `DELETE FROM user_episodes
+     WHERE user_id = $1
+       AND episode_id IN (
+         SELECT e.episode_id FROM episodes e
+         JOIN seasons se ON se.season_id = e.season_id
+         WHERE se.series_id = $2
+       )`,
+    [userId, seriesId],
+  );
+
   const result = await pool.query(
     `DELETE FROM user_series WHERE user_id = $1 AND series_id = $2 RETURNING *`,
     [userId, seriesId],
   );
 
   if (result.rows.length === 0) {
-    return res.status(404).json({ error: "Not tracking this series" });
+    throw new AppError(404, "Not tracking this series");
   }
   res.status(204).send();
 });
 
-module.exports = { addSeries, updateStatus, listSeries, removeSeries };
+const getSeriesStatus = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { seriesId } = req.params;
+
+  const result = await pool.query(
+    `SELECT status FROM user_series WHERE user_id = $1 AND series_id = $2`,
+    [userId, seriesId],
+  );
+
+  res.json({ status: result.rows[0]?.status || null });
+});
+
+module.exports = {
+  addSeries,
+  updateStatus,
+  listSeries,
+  removeSeries,
+  getSeriesStatus,
+};

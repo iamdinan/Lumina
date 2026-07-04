@@ -65,10 +65,29 @@ const login = asyncHandler(async (req, res) => {
 
 const getMe = asyncHandler(async (req, res) => {
   const result = await pool.query(
-    `SELECT user_id, username, created_at FROM users WHERE user_id = $1`,
+    `SELECT user_id, username, full_name, email, country, birthday, created_at
+     FROM users WHERE user_id = $1`,
     [req.user.userId],
   );
   res.json(result.rows[0]);
 });
 
-module.exports = { register, login, getMe };
+const updateProfile = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { full_name, email, country, birthday } = req.body;
+
+  const result = await pool.query(
+    `UPDATE users SET
+       full_name = COALESCE($1, full_name),
+       email = COALESCE($2, email),
+       country = COALESCE($3, country),
+       birthday = COALESCE($4, birthday)
+     WHERE user_id = $5
+     RETURNING user_id, username, full_name, email, country, birthday, created_at`,
+    [full_name, email, country, birthday, userId],
+  );
+
+  res.json(result.rows[0]);
+});
+
+module.exports = { register, login, getMe, updateProfile };

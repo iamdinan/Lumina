@@ -62,12 +62,20 @@ const importSeries = asyncHandler(async (req, res) => {
 
       for (const ep of seasonDetails.episodes) {
         await client.query(
-          `INSERT INTO episodes (season_id, tmdb_episode_id, episode_no, episode_name, air_date)
-           VALUES ($1, $2, $3, $4, $5)
-           ON CONFLICT (tmdb_episode_id) DO UPDATE
-             SET episode_name = EXCLUDED.episode_name,
-                 air_date = EXCLUDED.air_date`,
-          [seasonId, ep.id, ep.episode_number, ep.name, ep.air_date || null],
+          `INSERT INTO episodes (season_id, tmdb_episode_id, episode_no, episode_name, air_date, runtime_minutes)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          ON CONFLICT (tmdb_episode_id) DO UPDATE
+            SET episode_name = EXCLUDED.episode_name,
+              air_date = EXCLUDED.air_date,
+              runtime_minutes = EXCLUDED.runtime_minutes`,
+          [
+            seasonId,
+            ep.id,
+            ep.episode_number,
+            ep.name,
+            ep.air_date || null,
+            ep.runtime || null,
+          ],
         );
       }
     }

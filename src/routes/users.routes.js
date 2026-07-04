@@ -8,6 +8,8 @@ const {
 } = require("../validators/users.validator");
 const { authLimiter } = require("../middleware/rateLimit.middleware");
 const { requireAuth } = require("../middleware/auth.middleware");
+const userEpisodesController = require("../controllers/userEpisodes.controller");
+const { updateProfileValidator } = require("../validators/users.validator");
 
 router.post(
   "/register",
@@ -24,5 +26,13 @@ router.post(
   usersController.login,
 );
 router.get("/me", requireAuth, usersController.getMe);
+router.patch(
+  "/me",
+  requireAuth,
+  updateProfileValidator,
+  validate,
+  usersController.updateProfile,
+);
+router.get("/me/stats", requireAuth, userEpisodesController.getWatchStats);
 
 module.exports = router;

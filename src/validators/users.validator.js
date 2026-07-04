@@ -17,4 +17,26 @@ const loginValidator = [
   body("password").notEmpty().withMessage("is required"),
 ];
 
-module.exports = { registerValidator, loginValidator };
+const updateProfileValidator = [
+  body("full_name")
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage("must be under 100 characters"),
+  body("email")
+    .optional()
+    .trim()
+    .isEmail()
+    .withMessage("must be a valid email"),
+  body("country")
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage("must be under 100 characters"),
+  body("birthday")
+    .optional()
+    .isISO8601()
+    .withMessage("must be a valid date (YYYY-MM-DD)"),
+];
+
+module.exports = { registerValidator, loginValidator, updateProfileValidator };

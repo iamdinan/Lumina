@@ -4,6 +4,7 @@ const { requireAuth } = require("../middleware/auth.middleware");
 const userEpisodesController = require("../controllers/userEpisodes.controller");
 const validate = require("../middleware/validate.middleware");
 const { episodeIdParam } = require("../validators/userEpisodes.validator");
+const { updateProfileValidator } = require("../validators/users.validator");
 
 router.use(requireAuth);
 
