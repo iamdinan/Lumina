@@ -82,4 +82,9 @@ const importSeries = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { search, importSeries };
+const getPopular = asyncHandler(async (req, res) => {
+  const results = await tmdbService.getPopularSeries();
+  res.json(results);
+});
+
+module.exports = { search, importSeries, getPopular };

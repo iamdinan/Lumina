@@ -21,4 +21,14 @@ async function getSeasonDetails(tmdbId, seasonNo) {
   return res.data;
 }
 
-module.exports = { searchSeries, getSeriesDetails, getSeasonDetails };
+async function getPopularSeries() {
+  const res = await tmdb.get("/tv/popular");
+  return res.data.results;
+}
+
+module.exports = {
+  searchSeries,
+  getSeriesDetails,
+  getSeasonDetails,
+  getPopularSeries,
+};

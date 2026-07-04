@@ -14,5 +14,6 @@ router.post(
   validate,
   seriesController.importSeries,
 );
+router.get("/popular", seriesController.getPopular);
 
 module.exports = router;
