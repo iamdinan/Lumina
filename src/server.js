@@ -20,6 +20,14 @@ app.use(
 app.use(express.json());
 app.use(helmet());
 
+app.get("/", (req, res) => {
+  res.json({ status: "ok", server: "running", api: "Lumina API" });
+});
+
+app.get("/api", (req, res) => {
+  res.json({ status: "ok", server: "running", api: "Lumina API" });
+});
+
 // Health check — confirms server is up AND db connection works
 app.get("/api/health", async (req, res) => {
   try {
