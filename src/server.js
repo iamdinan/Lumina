@@ -8,11 +8,12 @@ const userSeriesRoutes = require("./routes/userSeries.routes");
 const userEpisodesRoutes = require("./routes/userEpisodes.routes");
 const errorHandler = require("./middleware/error.middleware");
 const helmet = require("helmet");
+const allowedOrigins = process.env.FRONTEND_URL.split(",");
 
 const app = express();
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
@@ -46,7 +47,7 @@ app.use("/api/users/me/series", userSeriesRoutes);
 app.use("/api/users/me/episodes", userEpisodesRoutes);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Lumina server running on http://localhost:${PORT}`);
 });
