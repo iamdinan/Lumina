@@ -19,14 +19,15 @@ const importSeries = asyncHandler(async (req, res) => {
   // ---- STEP 1: Do ALL external TMDB calls first, with no DB connection open ----
   const seriesData = await tmdbService.getSeriesDetails(tmdbId);
 
-  const seasonsWithEpisodes = [];
-  for (const season of seriesData.seasons) {
-    const seasonDetails = await tmdbService.getSeasonDetails(
-      tmdbId,
-      season.season_number,
-    );
-    seasonsWithEpisodes.push({ season, episodes: seasonDetails.episodes });
-  }
+  const seasonsWithEpisodes = await Promise.all(
+    seriesData.seasons.map(async (season) => {
+      const seasonDetails = await tmdbService.getSeasonDetails(
+        tmdbId,
+        season.season_number,
+      );
+      return { season, episodes: seasonDetails.episodes };
+    }),
+  );
 
   // ---- STEP 2: Now do a short, fast DB transaction with only writes ----
   const client = await pool.connect();
