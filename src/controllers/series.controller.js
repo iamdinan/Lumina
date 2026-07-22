@@ -15,11 +15,23 @@ const search = asyncHandler(async (req, res) => {
 
 const importSeries = asyncHandler(async (req, res) => {
   const { tmdbId } = req.params;
+
+  // ---- STEP 1: Do ALL external TMDB calls first, with no DB connection open ----
+  const seriesData = await tmdbService.getSeriesDetails(tmdbId);
+
+  const seasonsWithEpisodes = [];
+  for (const season of seriesData.seasons) {
+    const seasonDetails = await tmdbService.getSeasonDetails(
+      tmdbId,
+      season.season_number,
+    );
+    seasonsWithEpisodes.push({ season, episodes: seasonDetails.episodes });
+  }
+
+  // ---- STEP 2: Now do a short, fast DB transaction with only writes ----
   const client = await pool.connect();
 
   try {
-    const seriesData = await tmdbService.getSeriesDetails(tmdbId);
-
     await client.query("BEGIN");
 
     // 1. Insert series (or get existing)
@@ -41,9 +53,8 @@ const importSeries = asyncHandler(async (req, res) => {
     );
     const seriesId = seriesResult.rows[0].series_id;
 
-    // 2. Loop through seasons
-    for (const season of seriesData.seasons) {
-      // Skip "specials" (season_number 0) if you don't want them
+    // 2. Loop through seasons (data already fetched above)
+    for (const { season, episodes } of seasonsWithEpisodes) {
       const seasonResult = await client.query(
         `INSERT INTO seasons (series_id, tmdb_season_id, season_no)
          VALUES ($1, $2, $3)
@@ -54,13 +65,8 @@ const importSeries = asyncHandler(async (req, res) => {
       );
       const seasonId = seasonResult.rows[0].season_id;
 
-      // 3. Fetch and insert episodes for this season
-      const seasonDetails = await tmdbService.getSeasonDetails(
-        tmdbId,
-        season.season_number,
-      );
-
-      for (const ep of seasonDetails.episodes) {
+      // 3. Insert episodes for this season (data already fetched above)
+      for (const ep of episodes) {
         await client.query(
           `INSERT INTO episodes (season_id, tmdb_episode_id, episode_no, episode_name, air_date, runtime_minutes)
           VALUES ($1, $2, $3, $4, $5, $6)
