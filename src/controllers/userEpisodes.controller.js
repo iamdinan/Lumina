@@ -159,12 +159,18 @@ const getWatchStats = asyncHandler(async (req, res) => {
 
   const { episodes_watched, total_minutes } = result.rows[0];
   const minutes = Number(total_minutes);
+  const total_hours_raw = Math.floor(minutes / 60);
+
+  const months = Math.floor(total_hours_raw / (24 * 30));
+  const remaining_hours = total_hours_raw % (24 * 30);
+  const days = Math.floor(remaining_hours / 24);
+  const hours = remaining_hours % 24;
 
   res.json({
     episodes_watched: Number(episodes_watched),
-    total_hours: Math.round((minutes / 60) * 10) / 10,
-    total_days: Math.round((minutes / 60 / 24) * 10) / 10,
-    total_months: Math.round((minutes / 60 / 24 / 30) * 100) / 100,
+    total_hours: hours,
+    total_days: days,
+    total_months: months,
   });
 });
 
